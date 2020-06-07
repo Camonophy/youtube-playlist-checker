@@ -3,5 +3,5 @@
  create:
     Create a new playlist text document.
    
-check: \n
+check: 
     Check if your YouTube playlist differs from the last time you updated your local YouTube playlist document.
