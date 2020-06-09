@@ -8,26 +8,37 @@ import sys
 import os
 import json
 
-def load_client():
-    path = os.path.dirname(__file__)
-    
+def load_json(filename):
+    path = os.path.dirname(__file__)    
     try:
-        with open(path + "/Client.json") as file:
+        with open(path + filename + ".json") as file:
             data = json.load(file)
     except:
         while(1): 
-            path = str(input("<< Client.json not found! Add path manually: \n>> "))
+            path = str(input("<< {} not found! Add path manually: \n>> ".format(filename + ".json")))                   #Missing option to create a new one
             try:
-                with open(path + "/Client.json") as file:
+                with open(path + filename + ".json") as file:
                     data = json.load(file)
                     break
             except:
                 pass
     return data
 
+def write_error_json(local_missing, online_missing):
+    data = {"local": local_missing, "online": online_missing}
+    with open("Error.json", "w") as file:
+        json.dump(data, file)
+
+def write_error_txt(local_missing, online_missing):
+    with open("Error.txt", "w") as file:
+        file.writelines("Local:")
+        file.writelines(local_missing)
+        file.writelines("Online:")
+        file.writelines(online_missing)
+
 def update():
     print("<< Updating...")
-    client = load_client()
+    client = load_json("/Client")
     youtube = build("youtube", "v3", developerKey=client["installed"]["api_key"])
     me = youtube.channels().list(id="UCreMZ1blP--vIV6WhI5B4Ag", part="contentDetails").execute()
     video_list = youtube.playlistItems().list(playlistId="PLank_q9AUgKUM5Mku7jS88VE8LnJQ1kxK", part="snippet", maxResults=50).execute()
@@ -45,15 +56,15 @@ def update():
         
 def check():
     print("<< Checking...")
-    everything_is_fine = True
-    client = load_client()
+    no_error = True
+    client = load_json("/Client")
     youtube = build("youtube", "v3", developerKey=client["installed"]["api_key"])
     me = youtube.channels().list(id="UCreMZ1blP--vIV6WhI5B4Ag", part="contentDetails").execute()
     video_list = youtube.playlistItems().list(playlistId="PLank_q9AUgKUM5Mku7jS88VE8LnJQ1kxK", part="snippet", maxResults=50).execute()
     file_context = load_file("YoutubePlaylist.txt")
     online_content = load_videos(video_list["items"])
-    local_file_size = len(file_context)
-    remote_playlist_size = str(video_list["pageInfo"]["totalResults"])
+    local_missing_content = []
+    online_missing_content = []
 
     while 1:
         try:
@@ -63,10 +74,9 @@ def check():
             file_context.remove(video_name)
         except:
             if(online_content_length != 0 and len(file_context) == 0):
-                everything_is_fine = False
-                print("<< There are missing entrie in the local file! \n<< Missing file entrie: {}\n".format(video_name))
+                no_error = False
                 for entry in online_content:
-                    print(entry)
+                    local_missing_content.append(entry)
                 online_content.clear()
 
             try: 
@@ -75,20 +85,19 @@ def check():
                 online_content = load_videos(video_list["items"])
             except:
                 if(len(file_context) == 0 and online_content_length == 0):
-                    if everything_is_fine:
+                    if no_error:
                         print("<< Everything is up to date!")
                         break
                     else: 
-                        print("<< That*s is!")
+                        print("<< There are some new or missing entries! Check the generated Error.txt file for more info.")
                         break
-                elif(len(file_context) == 0):
-                    everything_is_fine = False
-                    print("<< There are missing entries in your YouTube playlist! \n<< Missing playlist entries: \n")
-                    for entry in file_context:
-                        print(entry)
                 else:
-                    everything_is_fine = False
-                    print("<< {} is missing! \n".format(video_name))
+                    no_error = False
+                    for entry in file_context:
+                        online_missing_content.append(entry)
+                    file_context.clear()
+
+    return (local_missing_content, online_missing_content)
 
 def load_videos(videos):
     content = []
@@ -103,13 +112,39 @@ def load_file(file_name):
             file_context.append(line)
     return file_context
 
+def generate_error_file(local_missing_new, online_missing_new):
+    try:
+        error_json = load_file("Error")
+        local_missing_old = error_json[1]                               #Placeholder
+        online_missing_old = error_json[2]                              #Placeholder
+
+        for entry in local_missing_old:
+            try:
+                local_missing_new.remove(entry)
+            except:
+                local_missing_old.remove(entry)
+        local_missing_old += local_missing_new
+        
+        for entry in online_missing_old:
+            try:
+                online_missing_new.remove(entry)
+            except:
+                online_missing_old.remove(entry)
+        online_missing_old += online_missing_new
+
+        write_error_json(local_missing_old, online_missing_old)
+
+    except:
+        write_error_json(local_missing_new, online_missing_new)
+
 def main():
     option = input("<< Type \"update\" to update your YT-Playlist or \"check\" to see if every video is still up:\n>> ")
     if(option.lower() == "update"):
         update()
         sys.exit()
     elif(option.lower() == "check"):
-        check()
+        (local_missing, online_missing) = check()
+        generate_error_file(local_missing, online_missing)
         sys.exit()
     else:
         print("\n<< Bye!")
