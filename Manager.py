@@ -8,40 +8,12 @@ import sys
 import os
 import json
 
-def load_json(filename):
-    path = os.path.dirname(__file__)    
-    try:
-        with open(path + filename + ".json") as file:
-            data = json.load(file)
-    except:
-        while(1): 
-            path = str(input("<< {} not found! Add path manually: \n>> ".format(filename + ".json")))                   #Missing option to create a new one
-            try:
-                with open(path + filename + ".json") as file:
-                    data = json.load(file)
-                    break
-            except:
-                pass
-    return data
-
-def write_error_json(local_missing, online_missing):
-    data = {"local": local_missing, "online": online_missing}
-    with open("Error.json", "w") as file:
-        json.dump(data, file)
-
-def write_error_txt(local_missing, online_missing):
-    with open("Error.txt", "w") as file:
-        file.writelines("Local:")
-        file.writelines(local_missing)
-        file.writelines("Online:")
-        file.writelines(online_missing)
-
 def update():
     print("<< Updating...")
-    client = load_json("/Client")
+    client = load_client_json()
     youtube = build("youtube", "v3", developerKey=client["installed"]["api_key"])
-    me = youtube.channels().list(id="UCreMZ1blP--vIV6WhI5B4Ag", part="contentDetails").execute()
-    video_list = youtube.playlistItems().list(playlistId="PLank_q9AUgKUM5Mku7jS88VE8LnJQ1kxK", part="snippet", maxResults=50).execute()
+    me = youtube.channels().list(id=client["installed"]["channel_ID"], part="contentDetails").execute()
+    video_list = youtube.playlistItems().list(playlistId=client["installed"]["playlist_ID"], part="snippet", maxResults=50).execute()
 
     with open("YoutubePlaylist.txt", "w") as file:
         while 1:
@@ -49,7 +21,7 @@ def update():
                 file.write(video["snippet"]["title"] + "\n")
             try:
                 nextPage = video_list["nextPageToken"]
-                video_list = youtube.playlistItems().list(playlistId="PLank_q9AUgKUM5Mku7jS88VE8LnJQ1kxK", part="snippet",pageToken=nextPage, maxResults=50).execute()
+                video_list = youtube.playlistItems().list(playlistId=client["installed"]["playlist_ID"], part="snippet",pageToken=nextPage, maxResults=50).execute()
             except:
                 print("<< File write success! Playlist length: " + str(video_list["pageInfo"]["totalResults"]))
                 break
@@ -57,11 +29,11 @@ def update():
 def check():
     print("<< Checking...")
     no_error = True
-    client = load_json("/Client")
+    client = load_client_json()
     youtube = build("youtube", "v3", developerKey=client["installed"]["api_key"])
-    me = youtube.channels().list(id="UCreMZ1blP--vIV6WhI5B4Ag", part="contentDetails").execute()
+    me = youtube.channels().list(id=client["installed"]["channel_ID"], part="contentDetails").execute()
     video_list = youtube.playlistItems().list(playlistId="PLank_q9AUgKUM5Mku7jS88VE8LnJQ1kxK", part="snippet", maxResults=50).execute()
-    file_context = load_file("YoutubePlaylist.txt")
+    file_content = load_file("YoutubePlaylist.txt")
     online_content = load_videos(video_list["items"])
     local_missing_content = []
     online_missing_content = []
@@ -69,33 +41,28 @@ def check():
     while 1:
         try:
             online_content_length = len(online_content)
+            file_content_length = len(file_content)
             video_name = online_content[0]
             online_content.remove(video_name)
-            file_context.remove(video_name)
+            file_content.remove(video_name)
         except:
-            if(online_content_length != 0 and len(file_context) == 0):
+            if(online_content_length != 0):
                 no_error = False
-                for entry in online_content:
-                    local_missing_content.append(entry)
-                online_content.clear()
-
-            try: 
-                nextPage = video_list["nextPageToken"]
-                video_list = youtube.playlistItems().list(playlistId="PLank_q9AUgKUM5Mku7jS88VE8LnJQ1kxK", part="snippet",pageToken=nextPage, maxResults=50).execute()
-                online_content = load_videos(video_list["items"])
-            except:
-                if(len(file_context) == 0 and online_content_length == 0):
-                    if no_error:
-                        print("<< Everything is up to date!")
+                local_missing_content.append(video_name)
+            else: 
+                try: 
+                    nextPage = video_list["nextPageToken"]
+                    video_list = youtube.playlistItems().list(playlistId=client["installed"]["playlist_ID"], part="snippet",pageToken=nextPage, maxResults=50).execute()
+                    online_content = load_videos(video_list["items"])
+                except:
+                    if(file_content_length + online_content_length == 0):
+                        print("<< Everything is up to date!" if no_error else "<< New or missing entries! Check out the generated Error.txt file for more info.")
                         break
-                    else: 
-                        print("<< There are some new or missing entries! Check the generated Error.txt file for more info.")
-                        break
-                else:
-                    no_error = False
-                    for entry in file_context:
-                        online_missing_content.append(entry)
-                    file_context.clear()
+                    else:
+                        no_error = False
+                        for entry in file_content:
+                            online_missing_content.append(entry)
+                        file_content.clear()
 
     return (local_missing_content, online_missing_content)
 
@@ -106,17 +73,74 @@ def load_videos(videos):
     return content
 
 def load_file(file_name):
-    file_context = []
+    file_content = []
     with open(file_name) as local_file:
         for line in local_file.readlines():
-            file_context.append(line)
-    return file_context
+            file_content.append(line)
+    return file_content
+
+def load_client_json():
+    path = os.path.dirname(__file__)    
+    try:
+        with open(path + "/Client.json") as file:
+            data = json.load(file)
+    except:
+        while(1): 
+            print("-----------------------------------------------------------------")
+            action = str(input("<< Client.json not found! Choose one of the following options:\n" \
+                "<< \"help\" for more infos\n" \
+                "<< \"create\" to create a new file\n" \
+                "<< \"dir\" to pass on a directory to an existing file\n>> "))
+
+            if(action == "help"):
+                print(">> In order to use the features of this program,\n>> you need to have an API-Key from Google stored in a Client.json file.\n" \
+                    ">> Follow the official Google documentation to receive your custom key: https://bit.ly/37wielc\n" \
+                    ">> Since your key is unique and bound to your account, DO NOT show or share it with any third person!!")
+            
+            elif(action == "create"):
+                api_key = str(input(">> API-Key: "))
+                channel_ID = str(input(">> Channel-ID (youtube.com/channel/[Channel-ID]): "))
+                playlist_ID = str(input(">> Playlist-ID (youtube.com/playlist?list=[Playlist-ID]): "))
+                with open(path + "Client.json", "w") as file:
+                    json.dump({"installed": {"api_key": api_key, "channel_ID": channel_ID, "playlist_ID": playlist_ID}}, file)
+            
+            elif(action == "dir"):
+                path = str(input(">> Path: "))
+                try:
+                    with open(path + "/Client.json") as file:
+                        data = json.load(file)
+                        break
+                except:
+                    pass
+            
+            else:
+                sys.exit()
+
+    return data
+
+def load_error_json():
+    path = os.path.dirname(__file__)    
+    with open(path + "/Client.json") as file:
+        data = json.load(file)
+
+def write_error_json(local_missing, online_missing):
+    data = {"local": local_missing, "online": online_missing}
+    with open("Error.json", "w") as file:
+        json.dump(data, file)
+
+def write_error_txt(local_missing, online_missing):
+    with open("Error.txt", "w") as file:
+        file.writelines("Local:\n")
+        file.writelines(local_missing)
+        file.writelines("\n")
+        file.writelines("Online:\n")
+        file.writelines(online_missing)
 
 def generate_error_file(local_missing_new, online_missing_new):
     try:
-        error_json = load_file("Error")
-        local_missing_old = error_json[1]                               #Placeholder
-        online_missing_old = error_json[2]                              #Placeholder
+        error_json = load_error_json()         
+        local_missing_old = error_json["local"]
+        online_missing_old = error_json["online"]
 
         for entry in local_missing_old:
             try:
@@ -133,9 +157,11 @@ def generate_error_file(local_missing_new, online_missing_new):
         online_missing_old += online_missing_new
 
         write_error_json(local_missing_old, online_missing_old)
+        write_error_txt(local_missing_old, online_missing_old)
 
     except:
         write_error_json(local_missing_new, online_missing_new)
+        write_error_txt(local_missing_new, online_missing_new)
 
 def main():
     option = input("<< Type \"update\" to update your YT-Playlist or \"check\" to see if every video is still up:\n>> ")
