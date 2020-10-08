@@ -10,7 +10,8 @@ import json
 
 
 def load_client_json():
-    path = os.path.dirname(__file__)    
+    path = "." if(len(os.path.dirname(__file__)) == 0) else os.path.dirname(__file__)
+
     try:
         with open(path + "/Client.json") as file:
             data = json.load(file)
@@ -28,6 +29,7 @@ def load_client_json():
                     "<< Since your key is unique and bound to your own account only, DO NOT show or share it with any third party!")
             
             elif(action == "create"):
+                print(">> WARNING! The following process will overwrite any existing Client.json file in path {}.".format(path))
                 api_key = str(input(">> API-Key: "))
                 channel_ID = str(input(">> Channel-ID (youtube.com/channel/[Channel-ID]): "))
                 playlist_ID = str(input(">> Playlist-ID (youtube.com/playlist?list=[Playlist-ID]): "))
