@@ -8,6 +8,46 @@ import sys
 import os
 import json
 
+
+def load_client_json():
+    path = os.path.dirname(__file__)    
+    try:
+        with open(path + "/Client.json") as file:
+            data = json.load(file)
+    except:
+        while(1): 
+            print("-----------------------------------------------------------------")
+            action = str(input("<< Client.json not found! Choose one of the following options:\n" \
+                "<< \"help\" for more infos\n" \
+                "<< \"create\" to create a new Client.json file\n" \
+                "<< \"dir\" to set a new path to your Client.json file\n>> "))
+
+            if(action == "help"):
+                print("<< In order to use the features of this program,\n>> you need to have a valid API-Key from Google stored in a local Client.json file.\n" \
+                    "<< Follow the official Google documentation to receive your custom key: https://bit.ly/37wielc\n" \
+                    "<< Since your key is unique and bound to your own account only, DO NOT show or share it with any third party!")
+            
+            elif(action == "create"):
+                api_key = str(input(">> API-Key: "))
+                channel_ID = str(input(">> Channel-ID (youtube.com/channel/[Channel-ID]): "))
+                playlist_ID = str(input(">> Playlist-ID (youtube.com/playlist?list=[Playlist-ID]): "))
+                with open(path + "Client.json", "w") as file:
+                    json.dump({"installed": {"api_key": api_key, "channel_ID": channel_ID, "playlist_ID": playlist_ID}}, file)
+            
+            elif(action == "dir"):
+                path = str(input(">> Path: "))
+                try:
+                    with open(path + "/Client.json") as file:
+                        data = json.load(file)
+                        break
+                except:
+                    pass
+            
+            else:
+                sys.exit()
+
+    return data
+
 def update():
     print("<< Updating...")
     client = load_client_json()
@@ -49,6 +89,7 @@ def check():
             if(online_content_length != 0):
                 no_error = False
                 local_missing_content.append(video_name)
+                print("<< {} is missing in your local playlist file.".format(video_name))
             else: 
                 try: 
                     nextPage = video_list["nextPageToken"]
@@ -56,15 +97,26 @@ def check():
                     online_content = load_videos(video_list["items"])
                 except:
                     if(file_content_length + online_content_length == 0):
-                        print("<< Everything is up to date!" if no_error else "<< New or missing entries! Check out the generated Error.txt file for more info.")
+                        check_result_handling(no_error)
                         break
                     else:
                         no_error = False
                         for entry in file_content:
                             online_missing_content.append(entry)
+                            print("<< {} not found in your Youtube playlist.".format(entry))
                         file_content.clear()
 
     return (local_missing_content, online_missing_content)
+
+def check_result_handling(no_error):
+    if no_error:
+        print("<< Everything is up to date!")
+    else:
+        print_entries = input("<< New or missing entries! Do you want to print out the content of Error.txt [y/n]?")
+        if print_entries.lower() == "y":
+            entries = load_file("Error.txt")
+            for entry in entries:
+                print(entry)
 
 def load_videos(videos):
     content = []
@@ -78,45 +130,6 @@ def load_file(file_name):
         for line in local_file.readlines():
             file_content.append(line)
     return file_content
-
-def load_client_json():
-    path = os.path.dirname(__file__)    
-    try:
-        with open(path + "/Client.json") as file:
-            data = json.load(file)
-    except:
-        while(1): 
-            print("-----------------------------------------------------------------")
-            action = str(input("<< Client.json not found! Choose one of the following options:\n" \
-                "<< \"help\" for more infos\n" \
-                "<< \"create\" to create a new file\n" \
-                "<< \"dir\" to pass on a directory to an existing file\n>> "))
-
-            if(action == "help"):
-                print(">> In order to use the features of this program,\n>> you need to have an API-Key from Google stored in a Client.json file.\n" \
-                    ">> Follow the official Google documentation to receive your custom key: https://bit.ly/37wielc\n" \
-                    ">> Since your key is unique and bound to your account, DO NOT show or share it with any third person!!")
-            
-            elif(action == "create"):
-                api_key = str(input(">> API-Key: "))
-                channel_ID = str(input(">> Channel-ID (youtube.com/channel/[Channel-ID]): "))
-                playlist_ID = str(input(">> Playlist-ID (youtube.com/playlist?list=[Playlist-ID]): "))
-                with open(path + "Client.json", "w") as file:
-                    json.dump({"installed": {"api_key": api_key, "channel_ID": channel_ID, "playlist_ID": playlist_ID}}, file)
-            
-            elif(action == "dir"):
-                path = str(input(">> Path: "))
-                try:
-                    with open(path + "/Client.json") as file:
-                        data = json.load(file)
-                        break
-                except:
-                    pass
-            
-            else:
-                sys.exit()
-
-    return data
 
 def load_error_json():
     path = os.path.dirname(__file__)    
@@ -164,7 +177,7 @@ def generate_error_file(local_missing_new, online_missing_new):
         write_error_txt(local_missing_new, online_missing_new)
 
 def main():
-    option = input("<< Type \"update\" to update your YT-Playlist or \"check\" to see if every video is still up:\n>> ")
+    option = input("<< Type in \"update\" to update your YT-Playlist or use \"check\" to see whether any changes happened since your last update:\n>> ")
     if(option.lower() == "update"):
         update()
         sys.exit()
