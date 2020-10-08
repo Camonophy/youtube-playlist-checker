@@ -99,7 +99,7 @@ def check():
                     online_content = load_videos(video_list["items"])
                 except:
                     if(file_content_length + online_content_length == 0):
-                        check_result_handling(no_error)
+                        check_result_handling(no_error, local_missing_content + online_missing_content)
                         break
                     else:
                         no_error = False
@@ -110,15 +110,16 @@ def check():
 
     return (local_missing_content, online_missing_content)
 
-def check_result_handling(no_error):
+def check_result_handling(no_error, list_of_missing_content):
     if no_error:
         print("<< Everything is up to date!")
     else:
         print_entries = input("<< New or missing entries! Do you want to print out the content of Error.txt [y/n]?")
         if print_entries.lower() == "y":
-            entries = load_file("Error.txt")
-            for entry in entries:
-                print(entry)
+            print()
+            for entry in list_of_missing_content:
+                print(entry[:-1])
+            print()
 
 def load_videos(videos):
     content = []
