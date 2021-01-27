@@ -18,12 +18,16 @@ whether there are some changes; for instance a video was taken down or removed, 
  
 ## Commands: 
 
-### create:
-Create a new __*YoutubePlaylist.txt*__ reference file.
+### Write:
+Write a new __*YoutubePlaylist.txt*__ reference file.
+
+### Update:
+Update your local reference file. 
 
 ### check:
-Check your local reference file with your actual YouTube-Playlist to see any differences their contents.
-    
- 
+Check your local reference file against your YouTube-Playlist to see any differences their contents.
+
+###### (Note that Write and update are doing the same, but have been split into two commands to avoid confusion.)
+
  ## Run:
  > python3 Manager.py
