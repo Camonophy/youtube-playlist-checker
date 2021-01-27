@@ -7,6 +7,7 @@ After running the program for the first time to generate a __*YoutubePlaylist.tx
 whether there are some changes; for instance a video was taken down or removed, or generate a new reference file.
 
  
+ 
 ## Dependencies:
  
  Simply run: 
@@ -14,6 +15,7 @@ whether there are some changes; for instance a video was taken down or removed, 
  > pip3 install -r requirements.txt
  
  to gather all packages that the program needs.  
+ 
  
  
 ## Commands: 
@@ -28,6 +30,8 @@ Update your local reference file.
 Check your local reference file against your YouTube-Playlist to see any differences their contents.
 
 ###### (Note that __write__ and __update__ are doing the same internaly, but have been split into two commands to avoid confusion.)
+
+
 
  ## Run:
  > python3 Manager.py
