@@ -25,8 +25,8 @@ def load_client_json():
 
             if(action == "help"):
                 print("<< In order to use the features of this program,\n>> you need to have a valid API-Key from Google stored in a local Client.json file.\n" \
-                    "<< Follow the official Google documentation to receive your custom key: https://bit.ly/37wielc\n" \
-                    "<< Since your key is unique and bound to your own account only, DO NOT show or share it with any third party!")
+                    "<< Follow the official Google documentation to receive your custom key here: https://bit.ly/37wielc\n" \
+                    "<< Since your key is unique and bound to your own account, DO NOT show or share it with any third party!")
             
             elif(action == "create"):
                 print(">> WARNING! The following process will overwrite any existing Client.json file in path {}.".format(path))
@@ -50,8 +50,9 @@ def load_client_json():
 
     return data
 
+
 def update():
-    print("<< Updating...")
+    print("<< Processing...")
     client = load_client_json()
     youtube = build("youtube", "v3", developerKey=client["installed"]["api_key"])
     me = youtube.channels().list(id=client["installed"]["channel_ID"], part="contentDetails").execute()
@@ -68,6 +69,7 @@ def update():
                 print("<< File write success! Playlist length: " + str(video_list["pageInfo"]["totalResults"]))
                 break
         
+
 def check():
     print("<< Checking...")
     no_error = True
@@ -81,26 +83,32 @@ def check():
     online_missing_content = []
 
     while 1:
+
         try:
             online_content_length = len(online_content)
             file_content_length = len(file_content)
-            video_name = online_content[0]
-            online_content.remove(video_name)
+
+            video_name = online_content.pop(0)
             file_content.remove(video_name)
+        
         except:
+
             if(online_content_length != 0):
                 no_error = False
                 local_missing_content.append(video_name)
                 print("<< {} is missing in your local playlist file.".format(video_name))
-            else: 
+            
+            else:     
                 try: 
                     nextPage = video_list["nextPageToken"]
                     video_list = youtube.playlistItems().list(playlistId=client["installed"]["playlist_ID"], part="snippet",pageToken=nextPage, maxResults=50).execute()
                     online_content = load_videos(video_list["items"])
+                
                 except:
                     if(file_content_length + online_content_length == 0):
                         check_result_handling(no_error, local_missing_content,  online_missing_content)
                         break
+                    
                     else:
                         no_error = False
                         for entry in file_content:
@@ -110,12 +118,14 @@ def check():
 
     return (local_missing_content, online_missing_content)
 
+
 def check_result_handling(no_error, local_missing_content, online_missing_content):
     if no_error:
         print("<< Everything is up to date!")
     else:
-        print_entries = input("<< New or missing entries! Do you want to print out the content of Error.txt [y/n]?")
-        if print_entries.lower() == "y":
+        print_entries = input("<< New or missing entries! Do you want to print out the content of Error.txt [y/n]?\n>> ")
+        if print_entries.lower() in ["y", "yes", "j", "ja"]:
+            print("<< ")
             print("\n<< Local missing entries:")
             for entry in local_missing_content:
                 print(entry[:-1])
@@ -124,11 +134,13 @@ def check_result_handling(no_error, local_missing_content, online_missing_conten
                 print(entry[:-1])
             print()
 
+
 def load_videos(videos):
     content = []
     for video in videos:
         content.append(video["snippet"]["title"] + "\n")
     return content
+
 
 def load_file(file_name):
     file_content = []
@@ -137,15 +149,18 @@ def load_file(file_name):
             file_content.append(line)
     return file_content
 
+
 def load_error_json():
     path = os.path.dirname(__file__)    
     with open(path + "/Client.json") as file:
         data = json.load(file)
 
+
 def write_error_json(local_missing, online_missing):
     data = {"local": local_missing, "online": online_missing}
     with open("Error.json", "w") as file:
         json.dump(data, file)
+
 
 def write_error_txt(local_missing, online_missing):
     with open("Error.txt", "w") as file:
@@ -154,6 +169,7 @@ def write_error_txt(local_missing, online_missing):
         file.writelines("\n")
         file.writelines("Online:\n")
         file.writelines(online_missing)
+
 
 def generate_error_file(local_missing_new, online_missing_new):
     try:
@@ -182,12 +198,19 @@ def generate_error_file(local_missing_new, online_missing_new):
         write_error_json(local_missing_new, online_missing_new)
         write_error_txt(local_missing_new, online_missing_new)
 
+
 def main():
-    option = input("<< Type in \"update\" to update your YT-Playlist or use \"check\" to see whether any changes happened since your last update:\n>> ")
-    if(option.lower() == "update"):
+    option = input( "--------------------------------------------------------------------------------\n" +
+                "--------------------- YouTube-Playlist Manager ---------------------------------\n" +
+                "--------------------------------------------------------------------------------\n" +
+                "<< u: update your playlist file (Overwrites any existing YoutubePlaylist.txt)\n" +
+                "<< w: write a new playlist file (Overwrites any existing YoutubePlaylist.txt)\n" +
+                "<< c: check the online playlist and compare it against the local reference file\n>> "
+            )
+    if option.lower() in ["u", "update", "w", "write", "new"]:
         update()
         sys.exit()
-    elif(option.lower() == "check"):
+    elif option.lower() in ["c", "check"]:
         (local_missing, online_missing) = check()
         generate_error_file(local_missing, online_missing)
         sys.exit()
