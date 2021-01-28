@@ -25,7 +25,7 @@ Write a new __*YoutubePlaylist.txt*__ reference file.
 Update your local reference file. 
 
 ### check:
-Check your local reference file against your YouTube-Playlist to see any differences their contents.
+Check your local reference file against your YouTube-Playlist to see any differences of their contents.
 
 ###### (Note that __write__ and __update__ are doing the same internally, but have been split into two commands to avoid confusion.)
 
