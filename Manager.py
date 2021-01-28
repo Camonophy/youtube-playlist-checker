@@ -34,7 +34,7 @@ def load_client_json():
                 channel_ID = str(input(">> Channel-ID (youtube.com/channel/[Channel-ID]): "))
                 playlist_ID = str(input(">> Playlist-ID (youtube.com/playlist?list=[Playlist-ID]): "))
                 with open(path + "Client.json", "w") as file:
-                    json.dump({"installed": {"api_key": api_key, "channel_ID": channel_ID, "playlist_ID": playlist_ID}}, file)
+                    json.dump({"api_key": api_key, "channel_ID": channel_ID, "playlist_ID": playlist_ID}, file)
             
             elif(action == "dir"):
                 path = str(input(">> Path: "))
@@ -53,40 +53,60 @@ def load_client_json():
 
 def update():
     print("<< Processing...")
-    client = load_client_json()
-    youtube = build("youtube", "v3", developerKey=client["installed"]["api_key"])
-    me = youtube.channels().list(id=client["installed"]["channel_ID"], part="contentDetails").execute()
-    video_list = youtube.playlistItems().list(playlistId=client["installed"]["playlist_ID"], part="snippet", maxResults=50).execute()
+
+    processed  = 0
+    client     = load_client_json()
+    youtube    = build("youtube", "v3", developerKey=client["api_key"])
+    me         = youtube.channels().list(id=client["channel_ID"], part="contentDetails").execute()
+
+    video_list     = youtube.playlistItems().list(playlistId=client["playlist_ID"], part="snippet", maxResults=50).execute()
+    playlist_perc  = int(video_list["pageInfo"]["totalResults"]) // 20
 
     with open("YoutubePlaylist.txt", "w") as file:
         while 1:
+            
             for video in (video_list["items"]):
                 file.write(video["snippet"]["title"] + "\n")
+                processed += 1
+                print(
+                    "\r<< [" + 
+                    "█" * (processed // playlist_perc) + " " * (20 - ((processed // playlist_perc))) + "]",
+                    end=""
+                )
+            
             try:
                 nextPage = video_list["nextPageToken"]
-                video_list = youtube.playlistItems().list(playlistId=client["installed"]["playlist_ID"], part="snippet",pageToken=nextPage, maxResults=50).execute()
+                video_list = youtube.playlistItems().list(playlistId=client["playlist_ID"], part="snippet",pageToken=nextPage, maxResults=50).execute()
+            
             except:
+                print()
                 print("<< File write success! Playlist length: " + str(video_list["pageInfo"]["totalResults"]))
                 break
         
 
 def check():
     print("<< Checking...")
-    no_error = True
-    client = load_client_json()
-    youtube = build("youtube", "v3", developerKey=client["installed"]["api_key"])
-    me = youtube.channels().list(id=client["installed"]["channel_ID"], part="contentDetails").execute()
-    video_list = youtube.playlistItems().list(playlistId="PLank_q9AUgKUM5Mku7jS88VE8LnJQ1kxK", part="snippet", maxResults=50).execute()
-    file_content = load_file("YoutubePlaylist.txt")
+    
+    no_error   = True
+    client     = load_client_json()
+    processed  = 0
+    missing_local  = 0
+    missing_online = 0
+
+    youtube    = build("youtube", "v3", developerKey=client["api_key"])
+    me         = youtube.channels().list(id=client["channel_ID"], part="contentDetails").execute()
+    video_list = youtube.playlistItems().list(playlistId=client["playlist_ID"], part="snippet", maxResults=50).execute()
+
+    playlist_perc  = int(video_list["pageInfo"]["totalResults"]) // 20
+    file_content   = load_file("YoutubePlaylist.txt")
     online_content = load_videos(video_list["items"])
-    local_missing_content = []
+    local_missing_content  = []
     online_missing_content = []
 
     while 1:
-
         try:
             online_content_length = len(online_content)
-            file_content_length = len(file_content)
+            file_content_length   = len(file_content)
 
             video_name = online_content.pop(0)
             file_content.remove(video_name)
@@ -96,12 +116,12 @@ def check():
             if(online_content_length != 0):
                 no_error = False
                 local_missing_content.append(video_name)
-                print("<< {} is missing in your local playlist file.".format(video_name))
+                missing_online += 1
             
             else:     
                 try: 
-                    nextPage = video_list["nextPageToken"]
-                    video_list = youtube.playlistItems().list(playlistId=client["installed"]["playlist_ID"], part="snippet",pageToken=nextPage, maxResults=50).execute()
+                    nextPage       = video_list["nextPageToken"]
+                    video_list     = youtube.playlistItems().list(playlistId=client["playlist_ID"], part="snippet",pageToken=nextPage, maxResults=50).execute()
                     online_content = load_videos(video_list["items"])
                 
                 except:
@@ -113,22 +133,33 @@ def check():
                         no_error = False
                         for entry in file_content:
                             online_missing_content.append(entry)
-                            print("<< {} not found in your Youtube playlist.".format(entry))
+                            missing_local += 1
                         file_content.clear()
+
+        processed += 1
+        print(
+            "\r<< [" + 
+            "█" * (processed // playlist_perc) + " " * (21 - ((processed // playlist_perc))) + "]" +
+            "   Missing: local {}; online {}".format(missing_local, missing_online), 
+            end=""
+            )
 
     return (local_missing_content, online_missing_content)
 
 
 def check_result_handling(no_error, local_missing_content, online_missing_content):
+    print()
     if no_error:
         print("<< Everything is up to date!")
     else:
         print_entries = input("<< New or missing entries! Do you want to print out the content of Error.txt [y/n]?\n>> ")
+        
         if print_entries.lower() in ["y", "yes", "j", "ja"]:
-            print("<< ")
-            print("\n<< Local missing entries:")
+            
+            print("<<\n<< Local missing entries:")
             for entry in local_missing_content:
                 print(entry[:-1])
+            
             print("\n<< Online missing entries:")
             for entry in online_missing_content:
                 print(entry[:-1])
