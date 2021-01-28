@@ -13,7 +13,7 @@ whether there are some changes; for instance a video was taken down or removed, 
  
  > pip3 install -r requirements.txt
  
- to gather all packages that the program needs.  
+ to gather all packages that you need.  
  
   
 ## Commands: 
