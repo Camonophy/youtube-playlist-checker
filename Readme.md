@@ -16,12 +16,12 @@ whether there are some changes; for instance a video was taken down or removed, 
  to gather all packages that you need.  
  
   
-## Commands: 
+## Options: 
 
-### Write:
+### write:
 Write a new __*YoutubePlaylist.txt*__ reference file.
 
-### Update:
+### update:
 Update your local reference file. 
 
 ### check:
