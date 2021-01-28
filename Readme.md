@@ -1,5 +1,3 @@
-# Youtube-Playlist Manager
-
 ## Description
 
 If you have a YouTube-Playlist with your favourite songs that you really care about, this tool may come in handy to you. 
