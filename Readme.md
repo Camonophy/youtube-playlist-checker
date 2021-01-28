@@ -27,7 +27,7 @@ Update your local reference file.
 ### check:
 Check your local reference file against your YouTube-Playlist to see any differences their contents.
 
-###### (Note that __write__ and __update__ are doing the same internaly, but have been split into two commands to avoid confusion.)
+###### (Note that __write__ and __update__ are doing the same internally, but have been split into two commands to avoid confusion.)
 
     
 ## Run:
