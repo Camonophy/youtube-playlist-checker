@@ -19,24 +19,24 @@ def load_client_json():
         while(1): 
             print("-----------------------------------------------------------------")
             action = str(input("<< Client.json not found! Choose one of the following options:\n" \
-                "<< \"help\" for more infos\n" \
-                "<< \"create\" to create a new Client.json file\n" \
-                "<< \"dir\" to set a new path to your Client.json file\n>> "))
+                "<< h ; more infos\n" \
+                "<< c ; create new Client.json file\n" \
+                "<< d ; new path to your Client.json file\n>> "))
 
-            if(action == "help"):
+            if action in ["h", "help"]:
                 print("<< In order to use the features of this program,\n>> you need to have a valid API-Key from Google stored in a local Client.json file.\n" \
                     "<< Follow the official Google documentation to receive your custom key here: https://bit.ly/37wielc\n" \
                     "<< Since your key is unique and bound to your own account, DO NOT show or share it with any third party!")
             
-            elif(action == "create"):
+            elif action in ["c", "create"]:
                 print(">> WARNING! The following process will overwrite any existing Client.json file in path {}.".format(path))
                 api_key = str(input(">> API-Key: "))
                 channel_ID = str(input(">> Channel-ID (youtube.com/channel/[Channel-ID]): "))
                 playlist_ID = str(input(">> Playlist-ID (youtube.com/playlist?list=[Playlist-ID]): "))
-                with open(path + "Client.json", "w") as file:
+                with open(path + "/Client.json", "w") as file:
                     json.dump({"api_key": api_key, "channel_ID": channel_ID, "playlist_ID": playlist_ID}, file)
             
-            elif(action == "dir"):
+            elif action in ["d", "dir"]:
                 path = str(input(">> Path: "))
                 try:
                     with open(path + "/Client.json") as file:
@@ -234,9 +234,9 @@ def main():
     option = input( "--------------------------------------------------------------------------------\n" +
                 "--------------------- YouTube-Playlist Manager ---------------------------------\n" +
                 "--------------------------------------------------------------------------------\n" +
-                "<< u: update your playlist file (Overwrites any existing YoutubePlaylist.txt)\n" +
-                "<< w: write a new playlist file (Overwrites any existing YoutubePlaylist.txt)\n" +
-                "<< c: check the online playlist and compare it against the local reference file\n>> "
+                "<< u ; update your playlist file (Overwrites any existing YoutubePlaylist.txt)\n" +
+                "<< w ; write a new playlist file (Overwrites any existing YoutubePlaylist.txt)\n" +
+                "<< c ; check the online playlist and compare it against the local reference file\n>> "
             )
     if option.lower() in ["u", "update", "w", "write", "new"]:
         update()
