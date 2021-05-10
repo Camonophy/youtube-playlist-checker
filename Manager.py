@@ -70,7 +70,7 @@ def update():
                 processed += 1
                 print(
                     "\r<< [" + 
-                    "█" * (processed // playlist_perc) + " " * (20 - ((processed // playlist_perc))) + "]",
+                    "#" * (processed // playlist_perc) + " " * (20 - ((processed // playlist_perc))) + "]",
                     end=""
                 )
             
@@ -139,7 +139,7 @@ def check():
         processed += 1
         print(
             "\r<< [" + 
-            "█" * (processed // playlist_perc) + " " * (21 - ((processed // playlist_perc))) + "]" +
+            "#" * (processed // playlist_perc) + " " * (20 - ((processed // playlist_perc))) + "]" +
             "   Missing: local {}; online {}".format(missing_local, missing_online), 
             end=""
             )
