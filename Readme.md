@@ -1,5 +1,3 @@
-# Youtube-Playlist Manager
-
 ## Description
 
 If you have a YouTube-Playlist with your favourite songs that you really care about, this tool may come in handy to you. 
@@ -13,21 +11,21 @@ whether there are some changes; for instance a video was taken down or removed, 
  
  > pip3 install -r requirements.txt
  
- to gather all packages that the program needs.  
+ to gather all packages that you need.  
  
   
-## Commands: 
+## Options: 
 
-### Write:
+### write:
 Write a new __*YoutubePlaylist.txt*__ reference file.
 
-### Update:
+### update:
 Update your local reference file. 
 
 ### check:
-Check your local reference file against your YouTube-Playlist to see any differences their contents.
+Check your local reference file against your YouTube-Playlist to see any differences of their contents.
 
-###### (Note that __write__ and __update__ are doing the same internaly, but have been split into two commands to avoid confusion.)
+###### (Note that __write__ and __update__ are doing the same internally, but have been split into two commands to avoid confusion.)
 
     
 ## Run:
