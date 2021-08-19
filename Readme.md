@@ -1,8 +1,8 @@
 ## Description
 
-If you have a YouTube-Playlist with your favourite songs that you really care about, this tool may come in handy to you. 
+If you have a YouTube-Playlist with your favourite songs, then this tool may come in handy to you. 
 After running the program for the first time to generate a __*YoutubePlaylist.txt*__ reference file, you can either check 
-whether there are some changes; for instance a video was taken down or removed, or generate a new reference file.
+whether there are some changes; for instance, a video was taken down/removed or generate a new reference file.
 
    
 ## Dependencies:
@@ -11,7 +11,7 @@ whether there are some changes; for instance a video was taken down or removed, 
  
  > pip3 install -r requirements.txt
  
- to gather all packages that you need.  
+ to gather the required packages 
  
   
 ## Options: 
