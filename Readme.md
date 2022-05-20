@@ -1,6 +1,6 @@
 ## Description
 
-If you have a YouTube-Playlist with your favourite songs, then this tool may come in handy for you. 
+If you have a dear YouTube-Playlist and you want to keep track of all its entries, then this tool may come in handy for you. 
 After running the program for the first time to generate a __*YoutubePlaylist.txt*__ reference file, you can either check 
 whether there are some changes; for instance, a video was taken down/removed or generate a new reference file.
 
