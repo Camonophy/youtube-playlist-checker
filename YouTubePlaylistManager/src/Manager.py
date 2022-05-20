@@ -1,12 +1,17 @@
-from googleapiclient.discovery import build
-from googleapiclient.errors import HttpError
-from google_auth_oauthlib.flow import InstalledAppFlow
-
-import google.oauth2.credentials
-import google_auth_oauthlib.flow
 import sys
+from sys import platform
 import os
 import json
+
+try:
+    from googleapiclient.discovery import build
+    from googleapiclient.errors import HttpError
+    from google_auth_oauthlib.flow import InstalledAppFlow
+except:
+    os.run("python -m pip install -r Resources/requirements.py")
+    from googleapiclient.discovery import build
+    from googleapiclient.errors import HttpError
+    from google_auth_oauthlib.flow import InstalledAppFlow
 
 
 def load_client_json():
@@ -66,13 +71,17 @@ def update():
         while 1:
             
             for video in (video_list["items"]):
-                file.write(video["snippet"]["title"] + "\n")
-                processed += 1
                 print(
                     "\r<< [" + 
                     "#" * (processed // playlist_perc) + " " * (20 - ((processed // playlist_perc))) + "]",
                     end=""
                 )
+
+                title = video["snippet"]["title"]
+                if title in ["Deleted video", "Private video"]:
+                    continue
+                file.write(title + "\n")
+                processed += 1
             
             try:
                 nextPage = video_list["nextPageToken"]
@@ -112,9 +121,8 @@ def check():
             file_content.remove(video_name)
         
         except:
-
             if(online_content_length != 0):
-                no_error = False
+                no_error = False 
                 local_missing_content.append(video_name)
                 missing_online += 1
             
@@ -169,7 +177,9 @@ def check_result_handling(no_error, local_missing_content, online_missing_conten
 def load_videos(videos):
     content = []
     for video in videos:
-        content.append(video["snippet"]["title"] + "\n")
+        title = video["snippet"]["title"]
+        if title not in ["Deleted video", "Private video"]:
+            content.append(title + "\n")
     return content
 
 
@@ -250,4 +260,10 @@ def main():
         sys.exit()
     
 if __name__ == "__main__":
-    main()
+    if platform == "linux":
+        main()
+    else:
+        filename = str(" ".join(sys.argv[3: len(sys.argv)]))
+        json_path = str(sys.argv[1])
+        txt_path = str(sys.argv[2])
+        #main()
